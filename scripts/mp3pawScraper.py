@@ -25,7 +25,7 @@ class MusicDownload():
         self.chrome_options = Options()
         self.chrome_options.add_argument('--disable-notifications')
         self.chrome_options.add_argument('--headless')
-        self.chrome_options.add_extension(r"..\extensions\extension_1_38_4_0.crx")
+        #self.chrome_options.add_extension(r"..\extensions\extension_1_38_4_0.crx")
         self.fileDownloaded = False
         self.chromeDriverUpdateVersion: str = "00.00.00.00"
     def checkFilePresence(self, numberOfFilesInitially, timeNow, extension, artistName, songTitle):
@@ -142,7 +142,6 @@ class MusicDownload():
                         self.driver.switch_to.window(self.driver.window_handles[2])
                         time.sleep(3)
                         buttons = self.driver.find_elements_by_css_selector('li[class^="btr-"]')
-                        print(f'length of buttons is {len(buttons)}')
                         params = {'behavior': 'allow', 'downloadPath': self.path}
                         self.driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
                         for i in range(5):

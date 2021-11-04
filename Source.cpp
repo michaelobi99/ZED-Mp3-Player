@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <sstream>
 #include <string>
-#include <vector>
+#include <list>
 #include <fstream>
 #include <algorithm>
 #include <cstdlib>
@@ -30,16 +30,11 @@ void searchDrive(fs::path folder)
 	std::ostringstream output;
 	std::ostringstream output2;
 	auto isFile = [](const fs::path file) {return file.filename().extension() == ".mp3"; };
-	std::vector<std::string> pathVec, fileNamevec;
-	pathVec.reserve(500);
-	fileNamevec.reserve(500);
+	std::list<std::string> pathVec, fileNamevec;
 	try {
 		for (auto const& entry : fs::recursive_directory_iterator(folder, fs::directory_options::skip_permission_denied)) {
 			try {
 				if (isFile(entry)) {
-					if(pathVec.capacity() == std::size(pathVec))
-						pathVec.reserve(50);
-						fileNamevec.reserve(50);
 					fileNamevec.emplace_back(entry.path().filename().string() + "\n");
 					pathVec.emplace_back(entry.path().parent_path().string() + "\n");
 				}
