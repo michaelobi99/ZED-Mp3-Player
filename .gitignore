@@ -1,6 +1,12 @@
 *.idea
 music_art.gif
 libmpg123.dll
+<<<<<<< HEAD
 MusicApp.exe
 MusicApp.spec
 
+=======
+details
+extensions
+MusicApp.exe
+>>>>>>> featureBranch1
