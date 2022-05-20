@@ -43,8 +43,8 @@ pygame.init()
 currentSongIndex = 0
 currentSong = 0
 previousSongIndex = 0
-nextSongIndex = 0
-playNext = False
+#nextSongIndex = 0
+playNextQueue = Queue(maxsize=20)
 #variables to represent the various states of the music player
 play, pause, stop, prev, next, idle = 0, 1, 2, 3, 4, 5
 musicLength = 0
@@ -376,7 +376,7 @@ class MusicPlayerGUI:
 
             self.userPlaylistMenu.append(tk.Menu(self.playlistListBox[counter], tearoff = 0, bg="#000000", fg='cyan', font='Times 8 bold'))
             self.userPlaylistMenu[counter].add_command(label = 'Play', command = lambda: self.playSelectionInPlaylist(counter), columnbreak = 1)
-            self.userPlaylistMenu[counter].add_command(label='Play Next', command= lambda: self.setNextInPlaylist(counter), columnbreak=1)
+            self.userPlaylistMenu[counter].add_command(label='Add to Queue', command= lambda: self.setNextInPlaylist(counter), columnbreak=1)
             self.userPlaylistMenu[counter].add_command(label='Remove', command= lambda: self.removeSongFromPlaylist(counter), columnbreak=1)
             self.userPlaylistMenu[counter].add_command(label='Properties', command= lambda: self.showPlaylistProperty(counter), columnbreak=1)
 
@@ -400,7 +400,7 @@ class MusicPlayerGUI:
         self.playlistOptionsMenu = tk.Menu(self.listBox, tearoff=0, bg="#000000", fg='cyan', font='Times 8 bold')
         self.menu = tk.Menu(self.listBox, tearoff = 0, bg = "#000000", fg = 'cyan', font = 'Times 8 bold')
         self.menu.add_command(label = 'Play', command = self.playSelection, columnbreak = 1)
-        self.menu.add_command(label = 'Play Next', command = self.setNextIndex, columnbreak = 1)
+        self.menu.add_command(label = 'Add to Queue', command = self.setNextIndex, columnbreak = 1)
         self.menu.add_command(label = 'Delete', command = self.deleteSong, columnbreak = 1)
         self.menu.add_command(label = 'Properties', command = self.showProperties, columnbreak = 1)
         self.menu.add_cascade(label = "Add to", menu = self.playlistOptionsMenu, columnbreak = 1)
@@ -409,7 +409,7 @@ class MusicPlayerGUI:
         self.searchPlaylistOptionsMenu = tk.Menu(self.searchlistBox, tearoff=0, bg="#000000", fg='cyan', font='Times 8 bold')
         self.searchmenu = tk.Menu(self.searchlistBox, tearoff=0, bg="#000000", fg='cyan', font = 'Times 8 bold')
         self.searchmenu.add_command(label='Play', command=self.playSearchSelection, columnbreak = 1)
-        self.searchmenu.add_command(label='Play Next', command=self.setNextSearchIndex, columnbreak = 1)
+        self.searchmenu.add_command(label='Add to Queue', command=self.setNextSearchIndex, columnbreak = 1)
         self.searchmenu.add_command(label='Delete', command=self.deleteSongSearch, columnbreak = 1)
         self.searchmenu.add_command(label='Properties', command=self.showSearchedSongProperties, columnbreak = 1)
         self.searchmenu.add_cascade(label = "Add to", menu = self.searchPlaylistOptionsMenu, columnbreak = 1)
@@ -757,34 +757,37 @@ class MusicPlayerGUI:
 
     def setNextIndex(self):
         global nextSongIndex
-        global playNext
+        global playNextQueue
         global popupON
         popupON = False
         self.listBox.selection_clear(0, tk.END)
         self.listBox.selection_set(self.listBox.nearest(yposition))
-        nextSongIndex = self.listBox.curselection()[0]
-        playNext = True
+        playNextQueue.put(self.listBox.curselection()[0], block=False)
+        #nextSongIndex = self.listBox.curselection()[0]
+        #playNext = True
 
     def setNextSearchIndex(self):
         global nextSongIndex
-        global playNext
+        global playNextQueue
         global popupON
         popupON = False
         self.searchlistBox.selection_clear(0, tk.END)
         self.searchlistBox.selection_set(self.searchlistBox.nearest(yposition))
-        nextSongIndex = self.searchListSongIndex[self.searchlistBox.curselection()[0]]
-        playNext = True
+        playNextQueue.put(self.searchListSongIndex[self.searchlistBox.curselection()[0]], block=False)
+        #nextSongIndex = self.searchListSongIndex[self.searchlistBox.curselection()[0]]
+        #playNext = True
 
     def setNextInPlaylist(self, playlistTabCurrentlyOn):
         global nextSongIndex
-        global playNext
+        global playNextQueue
         global popupON
         popupON = False
         tabid = playlistTabCurrentlyOn
         self.playlistListBox[tabid].selection_clear(0, tk.END)
         self.playlistListBox[tabid].selection_set(self.playlistListBox[tabid].nearest(yposition))
-        nextSongIndex = playListMusicIndex[tabid][self.playlistListBox[tabid].curselection()[0]]
-        playNext = True
+        playNextQueue.put(playListMusicIndex[tabid][self.playlistListBox[tabid].curselection()[0]])
+        #nextSongIndex = playListMusicIndex[tabid][self.playlistListBox[tabid].curselection()[0]]
+        #playNext = True
 
     def deleteSong(self):
         global popupON
@@ -986,18 +989,13 @@ file Location: {musicFilePathList[indexToShowProperties]}
         pass
 
     def processRepeat(self):
-        global currentSong
-        global nextSongIndex, playNext
         self.repeat.changeState()
         if self.repeat.getValue() == 2:
             self.repeatVar.set(1)
             self.repeatButton["image"] = self.repeatOnceImage
-            playNext = True
-            nextSongIndex = currentSong
         elif self.repeat.getValue() == 1:
+            self.repeatVar.set(1)
             self.repeatButton["image"] = self.repeatImage
-            playNext = True
-            nextSongIndex = currentSong
         else:
             self.repeatButton["image"] = self.repeatImage
 
@@ -1851,7 +1849,7 @@ file Location: {musicFilePathList[indexToShowProperties]}
                 global musicTrackerPosition
                 global currentSongIndex
                 global currentSong, previousSongIndex
-                global playNext
+                global playNextQueue
                 global lengthInPixel
                 global currentIndexPlayingInSearchList
                 global currentIndexPlayingInPlaylist
@@ -1871,7 +1869,7 @@ file Location: {musicFilePathList[indexToShowProperties]}
                 self.subWooferCanvas.update()
                 if songPlayingFromSearchList:
                     previousSongIndex = currentSong
-                    if playNext is False:
+                    if playNextQueue.empty():
                         if self.shuffle.get() == 0:
                             if currentIndexPlayingInSearchList == self.searchListSongIndex[len(self.searchListSongIndex) - 1]:
                                 currentIndexPlayingInSearchList = self.searchListSongIndex[0]
@@ -1886,12 +1884,11 @@ file Location: {musicFilePathList[indexToShowProperties]}
                         currentSong = currentIndexPlayingInSearchList
                         self.Play(currentSong)
                     else:
-                        playNext = False
-                        currentSong = nextSongIndex
-                        self.Play(nextSongIndex)
+                        currentSong = playNextQueue.get(block=False)
+                        self.Play(currentSong)
                 elif len(playListNames) == 1 and songPlayingFromPlaylist[0]:
                     previousSongIndex = currentSong
-                    if playNext is False:
+                    if playNextQueue.empty():
                         if self.shuffle.get() == 0:
                             if currentIndexPlayingInPlaylist[0] == playListMusicIndex[0][len(playListMusicIndex[0]) - 1]:
                                 currentIndexPlayingInPlaylist[0] = playListMusicIndex[0][0]
@@ -1903,13 +1900,12 @@ file Location: {musicFilePathList[indexToShowProperties]}
                         currentSong = currentIndexPlayingInPlaylist[0]
                         self.Play(currentSong)
                     else:
-                        playNext = False
-                        currentSong = nextSongIndex
-                        self.Play(nextSongIndex)
+                        currentSong = playNextQueue.get(block=False)
+                        self.Play(currentSong)
                 elif len(playListNames) == 2 and songPlayingFromPlaylist[0] or len(playListNames) == 2 and songPlayingFromPlaylist[1]:
                     previousSongIndex = currentSong
                     if songPlayingFromPlaylist[0]:
-                        if playNext is False:
+                        if playNextQueue.empty():
                             if self.shuffle.get() == 0:
                                 if currentIndexPlayingInPlaylist[0] == playListMusicIndex[0][len(playListMusicIndex[0]) - 1]:
                                     currentIndexPlayingInPlaylist[0] = playListMusicIndex[0][0]
@@ -1921,11 +1917,10 @@ file Location: {musicFilePathList[indexToShowProperties]}
                             currentSong = currentIndexPlayingInPlaylist[0]
                             self.Play(currentSong)
                         else:
-                            playNext = False
-                            currentSong = nextSongIndex
-                            self.Play(nextSongIndex)
+                            currentSong = playNextQueue.get(block=False)
+                            self.Play(currentSong)
                     elif songPlayingFromPlaylist[1]:
-                        if playNext is False:
+                        if playNextQueue.empty():
                             if self.shuffle.get() == 0:
                                 if currentIndexPlayingInPlaylist[1] == playListMusicIndex[1][len(playListMusicIndex[1]) - 1]:
                                     currentIndexPlayingInPlaylist[1] = playListMusicIndex[1][0]
@@ -1937,30 +1932,31 @@ file Location: {musicFilePathList[indexToShowProperties]}
                             currentSong = currentIndexPlayingInPlaylist[1]
                             self.Play(currentSong)
                         else:
-                            playNext = False
-                            currentSong = nextSongIndex
-                            self.Play(nextSongIndex)
+                            currentSong = playNextQueue.get(block=False)
+                            self.Play(currentSong)
 
                 else:
                     previousSongIndex = currentSong
-                    if playNext is False:
-                        if self.shuffle.get() == 0:
-                            if currentSong == len(musicFilenameList) - 1:
-                                currentSong = 0
-                            else:
-                                currentSong += 1
-                            self.Play(currentSong)
-                        elif self.shuffle.get() == 1:
-                            currentSong = randrange(0, len(musicFilenameList) - 1)
-                            self.Play(currentSong)
-                    elif playNext is True:
-                        if self.repeat.getValue() == 1:
-                            currentSong = nextSongIndex
-                            self.Play(nextSongIndex)
+                    if playNextQueue.empty():
+                        if self.repeat.getValue() == 1: #continuous repeat
+                            pass #play current cong, hence no need to assign new value
+                        elif self.repeat.getValue() == 2: #repeat once
+                            self.repeat.changeState()
+                            self.repeatVar.set(0)
+                            self.repeatButton["image"] = self.repeatImage
                         else:
-                            playNext = False
-                            currentSong = nextSongIndex
-                        self.Play(nextSongIndex)
+                            if self.shuffle.get() == 0:
+                                if currentSong == len(musicFilenameList) - 1:
+                                    currentSong = 0
+                                else:
+                                    currentSong += 1
+                            elif self.shuffle.get() == 1:
+                                currentSong = randrange(0, len(musicFilenameList) - 1)
+                        self.Play(currentSong)
+                    else:
+                        currentSong = playNextQueue.get(block=False)
+                        self.Play(currentSong)
+
             except tk.TclError:
                 pass
         else:
