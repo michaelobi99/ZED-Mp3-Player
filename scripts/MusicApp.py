@@ -1870,17 +1870,24 @@ file Location: {musicFilePathList[indexToShowProperties]}
                 if songPlayingFromSearchList:
                     previousSongIndex = currentSong
                     if playNextQueue.empty():
-                        if self.shuffle.get() == 0:
-                            if currentIndexPlayingInSearchList == self.searchListSongIndex[len(self.searchListSongIndex) - 1]:
-                                currentIndexPlayingInSearchList = self.searchListSongIndex[0]
-                            else:
-                                currentIndexPlayingInSearchList = self.searchListSongIndex[self.searchListSongIndex.index(currentIndexPlayingInSearchList) + 1]
-                        elif self.shuffle.get() == 1:
-                            if (len(self.searchListSongIndex) == 1):
-                                currentIndexPlayingInSearchList = self.searchListSongIndex[0]
-                            elif (len(self.searchListSongIndex) > 1):
-                                index = randrange(0, len(self.searchListSongIndex) - 1)
-                                currentIndexPlayingInSearchList = self.searchListSongIndex[index]
+                        if self.repeat.getValue() == 1: #continuous repeat
+                            pass #play current cong, hence no need to assign new value
+                        elif self.repeat.getValue() == 2: #repeat once
+                            self.repeat.changeState()
+                            self.repeatVar.set(0)
+                            self.repeatButton["image"] = self.repeatImage
+                        else:
+                            if self.shuffle.get() == 0:
+                                if currentIndexPlayingInSearchList == self.searchListSongIndex[len(self.searchListSongIndex) - 1]:
+                                    currentIndexPlayingInSearchList = self.searchListSongIndex[0]
+                                else:
+                                    currentIndexPlayingInSearchList = self.searchListSongIndex[self.searchListSongIndex.index(currentIndexPlayingInSearchList) + 1]
+                            elif self.shuffle.get() == 1:
+                                if (len(self.searchListSongIndex) == 1):
+                                    currentIndexPlayingInSearchList = self.searchListSongIndex[0]
+                                elif (len(self.searchListSongIndex) > 1):
+                                    index = randrange(0, len(self.searchListSongIndex) - 1)
+                                    currentIndexPlayingInSearchList = self.searchListSongIndex[index]
                         currentSong = currentIndexPlayingInSearchList
                         self.Play(currentSong)
                     else:
