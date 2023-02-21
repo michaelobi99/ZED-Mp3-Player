@@ -19,7 +19,7 @@ from contextlib import suppress
 tfpdl_videoDownloadCancelledFlag = Queue(maxsize=1)
 tfpdl_videoDownloadErrors = Queue(maxsize=2)
 tfpdl_videoDownloadNotification = Queue(maxsize=2)
-from scripts.voicemessages import fileFoundMessage, searchMessage
+from voicemessages import fileFoundMessage, searchMessage
 
 class TFPDLVideoDownload():
     def __init__(self):

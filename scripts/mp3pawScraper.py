@@ -8,9 +8,9 @@ from threading import Thread
 import os
 import datetime
 import re
-from scripts.voicemessages import fileFoundMessage
+from voicemessages import fileFoundMessage
 from queue import Queue
-from scripts.voicemessages import searchMessage
+from voicemessages import searchMessage
 musicDownloadCancelledFlag = Queue(maxsize=1)
 musicDownloadErrors = Queue(maxsize=2)
 musicDownloadNotification = Queue(maxsize=1)

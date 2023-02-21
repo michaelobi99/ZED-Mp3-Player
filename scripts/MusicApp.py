@@ -8,6 +8,7 @@ Description:
     it also use the Mutagen library(an MPEG 3 library, for use to check the length of a song).
 :return:
 '''
+import sys
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import tkinter as tk
@@ -22,21 +23,21 @@ import re
 import os
 from contextlib import suppress
 from queue import Queue, Empty, Full
-from scripts.loadMusicProperties import Properties
+from loadMusicProperties import Properties
 from mutagen.id3 import ID3
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
-from scripts.SearchForSongs import searchForSongs, update, musicFilePathList, musicFilenameList
-from scripts.voicemessages import downloadMessage
-from scripts.mp3pawScraper import MusicDownload, musicDownloadErrors, musicDownloadNotification
-from scripts.mp3pawScraper import musicDownloadCancelledFlag
-from scripts.netnaijaScraper import (VideoDownLoad, videoDownloadCancelledFlag,
+from SearchForSongs import searchForSongs, update, musicFilePathList, musicFilenameList
+from voicemessages import downloadMessage
+from mp3pawScraper import MusicDownload, musicDownloadErrors, musicDownloadNotification
+from mp3pawScraper import musicDownloadCancelledFlag
+from netnaijaScraper import (VideoDownLoad, videoDownloadCancelledFlag,
                                 ElementClickInterceptedException, TimeoutException,
                                 NoSuchElementException, WebDriverException, InvalidArgumentException,
                                 videoDownloadErrors, videoDownloadNotification)
-from scripts.tfpdlScraper import (tfpdl_videoDownloadErrors, tfpdl_videoDownloadCancelledFlag,
+from tfpdlScraper import (tfpdl_videoDownloadErrors, tfpdl_videoDownloadCancelledFlag,
                             tfpdl_videoDownloadNotification, TFPDLVideoDownload)
-from scripts.chromeDriverdownloader import downloader
+from chromeDriverdownloader import downloader
 
 pygame.mixer.pre_init(44100, 16, 2, 1024 * 4)
 pygame.init()
@@ -75,6 +76,7 @@ songPlayingFromPlaylist = []
 currentIndexPlayingInPlaylist = []
 subwooverImageString1 = '../assets/music logo1.gif'
 subwooverImageString2 = '../music_art.gif'
+musicFile: str = "" #song to play on startup using cmdline argument if any
 
 window = tk.Tk()
 window.resizable(False, False)
@@ -98,7 +100,7 @@ class Repeat:
     def getValue(self):
         return self.__number
 #the Repeat class is used to keep track of how many times the repeat button has been clicked
-#if number == 0, the button hasn't been clicked, the song doesnt repeat
+#if number == 0, the button hasn't been clicked, the song doesn't repeat
 #if number == 1, the current song repeats continuously until its is set to another number
 #if number == 2, the current song repeats once and moves on to the next song
 
@@ -109,6 +111,8 @@ class MusicPlayerGUI:
         global playListNames
         global playListContent
         global tabID
+        global currentSong
+        global musicFile
         self.currentMusicTimequeue = None
         self.path = r'C:\\'
         self.searchSongsInCDriveThread = Thread(target= self.loadSongs)
@@ -140,6 +144,7 @@ class MusicPlayerGUI:
         for number in range(len(musicFilenameList)):
             self.musicID.append(number)
 
+        #destroy splash screen
         window.destroy()
 
         self.window = tk.Tk()
@@ -440,6 +445,13 @@ class MusicPlayerGUI:
         self.videoDownloadExecutor = ThreadPoolExecutor(max_workers=1)
         self.videoDownloadList = Queue(maxsize=2)
         self.videoDownloadSite = Queue(maxsize=2)
+        if len(musicFile) > 0:
+            musicFile = musicFile.split('\\')[-1]
+            for file in musicFilenameList:
+                if file == musicFile:
+                    currentSong = musicFilenameList.index(file)
+                    break
+            self.play()
         self.window.mainloop()
 
     #function on another thread called to load the songs from the ROM to a list before the Player starts
@@ -1987,6 +1999,12 @@ file Location: {musicFilePathList[indexToShowProperties]}
         sleep(0.2)
         self.window.destroy()
 
-window.after(1000, MusicPlayerGUI)
+def main():
+    global musicFile
+    if len(sys.argv) > 1:
+        musicFile = sys.argv[1]
+    window.after(1, MusicPlayerGUI)
+    window.mainloop()
 
-window.mainloop()
+if __name__ == '__main__':
+    main()

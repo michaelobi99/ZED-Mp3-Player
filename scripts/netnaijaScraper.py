@@ -15,7 +15,7 @@ import datetime
 from threading import Thread
 from typing import List
 from contextlib import suppress
-from scripts.voicemessages import fileFoundMessage, searchMessage
+from voicemessages import fileFoundMessage, searchMessage
 videoDownloadCancelledFlag = Queue(maxsize=1)
 videoDownloadErrors = Queue(maxsize=2)
 videoDownloadNotification = Queue(maxsize=2)
