@@ -76,6 +76,7 @@ songPlayingFromPlaylist = []
 currentIndexPlayingInPlaylist = []
 subwooverImageString1 = '../assets/music logo1.gif'
 subwooverImageString2 = '../music_art.gif'
+splashScreenImage = "../assets/Start.gif"
 musicFile: str = "" #song to play on startup using cmdline argument if any
 
 window = tk.Tk()
@@ -85,7 +86,7 @@ window.attributes("-alpha", 0.8)
 canvas = tk.Canvas(window, width = 1050, height = 500, bg = "#000000")
 canvas.pack()
 canvas.create_text(500, 200, text = "ZED MP3 PLAYER", font = "Helvetica 80", fill = "cyan")
-image = tk.PhotoImage(file = "../assets/Start.gif")
+image = tk.PhotoImage(file = splashScreenImage)
 canvas.create_image(500, 350, image = image)
 
 class Repeat:
@@ -2003,7 +2004,7 @@ def main():
     global musicFile
     if len(sys.argv) > 1:
         musicFile = sys.argv[1]
-    window.after(1, MusicPlayerGUI)
+    window.after(500, MusicPlayerGUI)
     window.mainloop()
 
 if __name__ == '__main__':
