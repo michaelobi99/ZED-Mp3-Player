@@ -241,7 +241,7 @@ class VideoDownLoad():
                             until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '''
                                                                                     div[id = 'search-results'] article[class = 'sr-one'] \
                                                                                     div[class = 'info'] h3 a''')))
-                seasonLinks = self.driver.find_elements_by_css_selector("""div[class = 'video-files'] div[class = 'info'] h2 a""")
+                seasonLinks = self.driver.find_elements(By.CSS_SELECTOR, """div[class = 'video-files'] div[class = 'info'] h2 a""")
                 #repurposing self.found
                 self.found = False
                 for link in seasonLinks:

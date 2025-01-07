@@ -30,6 +30,3 @@ def fileFoundMessage():
         return
     except RuntimeError:
         pass
-
-
-

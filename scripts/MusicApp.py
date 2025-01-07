@@ -1999,7 +1999,6 @@ file Location: {musicFilePathList[indexToShowProperties]}
                 pass
         sleep(0.2)
         self.window.destroy()
-
 def main():
     global musicFile
     if len(sys.argv) > 1:
